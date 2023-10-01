@@ -1,3 +1,5 @@
+import { MENU_ITEMS } from "@/constants";
+import { actionItemClick } from "@/slice/menuSlice";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -10,6 +12,36 @@ const Board = () => {
 
   const { activeMenuItem, actionMenuItem } = useSelector((state) => state.menu);
   const { color, size } = useSelector((state) => state.toolbox[activeMenuItem]);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+
+    if (actionMenuItem === MENU_ITEMS.DOWNLOAD) {
+      const URL = canvas.toDataURL();
+      const anchor = document.createElement("a");
+      anchor.href = URL;
+      anchor.download = "sketch.png";
+      anchor.click();
+    } else if (
+      actionMenuItem === MENU_ITEMS.UNDO ||
+      actionMenuItem === MENU_ITEMS.REDO
+    ) {
+      if (actionMenuItem === MENU_ITEMS.UNDO && historyPointer.current > 0) {
+        historyPointer.current -= 1;
+      } else if (
+        actionMenuItem === MENU_ITEMS.REDO &&
+        historyPointer.current < drawHistory.current.length - 1
+      ) {
+        historyPointer.current += 1;
+      }
+      const imageData = drawHistory.current[historyPointer.current];
+      context.putImageData(imageData, 0, 0);
+    }
+
+    dispatch(actionItemClick(null));
+  }, [actionMenuItem, dispatch]);
 
   useEffect(() => {
     if (!canvasRef.current) return;

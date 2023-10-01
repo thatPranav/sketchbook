@@ -5,7 +5,6 @@ import { COLORS, MENU_ITEMS } from "@/constants";
 import { changeBrushSize, changeColor } from "@/slice/toolboxSlice";
 const Toolbox = () => {
   const dispatch = useDispatch();
-  const state = useSelector((state) => state);
 
   const activeMenuItem = useSelector((state) => state.menu.activeMenuItem);
   const { color, size } = useSelector((state) => state.toolbox[activeMenuItem]);
