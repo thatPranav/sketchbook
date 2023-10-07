@@ -3,9 +3,13 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 
-const url = "http://localhost:3000";
-
 const app = express();
+
+const url =
+  app.settings.env === "development"
+    ? "http://localhost:3000"
+    : "https://sketchbook-black.vercel.app/";
+    
 app.use(cors({ origin: url }));
 
 const httpServer = createServer();
@@ -14,7 +18,6 @@ const io = new Server(httpServer, {
 });
 
 io.on("connection", (socket) => {
-  console.log("server connected");
   socket.on("beginPath", (arg) => {
     socket.broadcast.emit("beginPath", arg);
   });
