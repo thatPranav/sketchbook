@@ -55,7 +55,16 @@ const Board = () => {
       context.lineWidth = size;
     };
 
+    const handleChangeConfig = ({ color, size }) => {
+      changeConfig(color, size);
+    };
+
     changeConfig(color, size);
+    socket.on("changeConfig", handleChangeConfig);
+
+    return () => {
+      socket.off("changeConfig", handleChangeConfig);
+    };
   }, [color, size]);
 
   useEffect(() => {
@@ -78,11 +87,13 @@ const Board = () => {
     const handleMouseDown = (e) => {
       shouldDraw.current = true;
       beginPath(e.clientX, e.clientY);
+      socket.emit("beginPath", { x: e.clientX, y: e.clientY });
     };
 
     const handleMouseMove = (e) => {
       if (!shouldDraw.current) return;
       drawLine(e.clientX, e.clientY);
+      socket.emit("drawLine", { x: e.clientX, y: e.clientY });
     };
 
     const handleMouseUp = (e) => {
@@ -92,18 +103,28 @@ const Board = () => {
       historyPointer.current = drawHistory.current.length - 1;
     };
 
+    const handleBeginPath = ({ x, y }) => {
+      beginPath(x, y);
+    };
+
+    const handleDrawLine = ({ x, y }) => {
+      drawLine(x, y);
+    };
+
     canvas.addEventListener("mousedown", handleMouseDown);
     canvas.addEventListener("mousemove", handleMouseMove);
     canvas.addEventListener("mouseup", handleMouseUp);
 
-    socket.on("connection", () => {
-      console.log("client connected");
-    });
+    socket.on("beginPath", handleBeginPath);
+    socket.on("drawLine", handleDrawLine);
 
     return () => {
       canvas.removeEventListener("mousedown", handleMouseDown);
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseup", handleMouseUp);
+
+      socket.off("beginPath", handleBeginPath);
+      socket.off("drawLine", handleDrawLine);
     };
   }, []);
   return <canvas ref={canvasRef} />;
